@@ -15,12 +15,26 @@ ENV PATH /opt/conda/bin:$PATH
 RUN conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/ \
 	&& conda install tensorflow-gpu=1.12 -y
 
-# install opencv lib 
+# install opencv lib for image processing
 RUN pip install msgpack opencv-python \
 	&& apt-get update \
 	&& apt-get install libsm6 libxrender1 libxext-dev -y \
 	&& apt-get autoremove -y \
 	&& apt-get autoclean -y \
 	&& rm -rf /var/lib/apt/lists/*
+
+# install google object detection
+RUN apt-get update \
+	&& apt-get install git -y \
+	&& git clone https://gitee.com/study-cooperation/models.git \
+	&& /bin/bash models/research/setup.sh \
+	&& mkdir /opt/object_detection \
+	&& cp -r models/research/build/lib/* /opt/object_detection \
+	&& apt-get remove git --purge -y \
+	&& apt-get autoremove -y \
+	&& apt-get autoclean -y \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& rm -rf /models
+ENV PYTHONPATH /opt/object_detection:$PYTHONPATH
 
 CMD ["/bin/bash"]
